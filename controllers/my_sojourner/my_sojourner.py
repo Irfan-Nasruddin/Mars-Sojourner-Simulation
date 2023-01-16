@@ -158,48 +158,62 @@ if __name__ == "__main__":
         # Initialize angle values of different areas within the range image.
         max_left_angle = max_middle_angle = max_right_angle = 90
         
-        # Loop through the pixels.
-        for pixel_row_index in range(RANGE_IMAGE_HEIGHT//2, RANGE_IMAGE_HEIGHT, 10):
-            for pixel_column_index in range(RANGE_IMAGE_WIDTH):
-                # Get distance to the object in front.
-                distance = RANGE_FINDER.rangeImageGetDepth(range_image, RANGE_IMAGE_WIDTH, pixel_column_index, pixel_row_index)
-                
-                # If the pixel row is the middle row of the range image.
-                if(pixel_row_index == RANGE_IMAGE_HEIGHT/2):
-                    # Get the shortest distance from each area within the range image.
-                    if(pixel_column_index < RANGE_IMAGE_WIDTH/3):
-                        if(distance < left_distance):
-                            left_distance = distance
-                    elif(pixel_column_index > 2 * RANGE_IMAGE_WIDTH/3):
-                        if(distance < right_distance):
-                            right_distance = distance
-                    else:
-                        if(distance < middle_distance):
-                            middle_distance = distance
-    
-                # Get angle to the floor in front.
-                angle = 180 - (RANGE_IMAGE_HEIGHT - pixel_row_index) * ANGLE_PER_PIXEL - asin(ROBOT_HEIGHT/distance) * 180/pi
-                
-                # Get the biggest angle (deepest chasm).
-                if(pixel_row_index < RANGE_IMAGE_WIDTH/3):
-                    if(angle > max_left_angle):
-                        max_left_angle = angle
-                elif(pixel_row_index > 2 * RANGE_IMAGE_WIDTH/3):
-                    if(angle > max_right_angle):
-                        max_right_angle = angle
-                else:
-                    if(angle > max_middle_angle):
-                        max_middle_angle = angle
+        for pixel_column_index in range(RANGE_IMAGE_WIDTH):
+            # Get distance to the object in front.
+            distance = RANGE_FINDER.rangeImageGetDepth(range_image, RANGE_IMAGE_WIDTH, pixel_column_index, RANGE_IMAGE_HEIGHT//2)
+
+            # Get the shortest distance from each area within the range image.
+            if(pixel_column_index < RANGE_IMAGE_WIDTH/3):
+                if(distance < left_distance):
+                    left_distance = distance
+            elif(pixel_column_index > 2 * RANGE_IMAGE_WIDTH/3):
+                if(distance < right_distance):
+                    right_distance = distance
+            else:
+                if(distance < middle_distance):
+                    middle_distance = distance
+
+            # Get the distance to the floor in front.
+            distance = RANGE_FINDER.rangeImageGetDepth(range_image, RANGE_IMAGE_WIDTH, pixel_column_index, 3 * RANGE_IMAGE_HEIGHT//4)
+
+            # Get angle to the floor in front.
+            angle = 0
+            side_ratio = ROBOT_HEIGHT/distance
+
+            # If the triangle is not an isoscelese triangle.
+            if(side_ratio >= -1 and side_ratio <= 1):
+                angle = 180 - 45 - asin(side_ratio) * 180/pi
+            # If the triangle is an isosceles triangle.
+            else:
+                angle = 45
+        
+            # Get the biggest angle (deepest chasm).
+            if(pixel_column_index < RANGE_IMAGE_WIDTH/3):
+                if(angle > max_left_angle):
+                    max_left_angle = angle
+            elif(pixel_column_index > 2 * RANGE_IMAGE_WIDTH/3):
+                if(angle > max_right_angle):
+                    max_right_angle = angle
+            else:
+                if(angle > max_middle_angle):
+                    max_middle_angle = angle
 
         # Decide movement based on distance of objects and elevation (angle).
-        if((middle_distance <= 0.5 and right_distance <= 0.5 and left_distance < 0.5) or (max_middle_angle >= 100 and max_right_angle >= 100 and max_left_angle >= 100)):
+        if((middle_distance <= 1 and right_distance <= 1 and left_distance < 1) or (max_middle_angle >= 130 and max_right_angle >= 130 and max_left_angle >= 130)):
             turn_around(1.0)
-        elif((right_distance < 0.5) or (max_right_angle >= 100)):
+            print(f"Around:: (mid, right, left) distance: {middle_distance} {right_distance} {left_distance}, (mid, right, left) angles: {max_middle_angle} {max_right_angle} {max_left_angle}")
+        elif((right_distance < 1) or (max_right_angle >= 130)):
             turn_left()
-        elif((left_distance < 0.5) or (max_left_angle >= 100)):
+            move_4_wheels(1.0)
+            print(f"Left:: (mid, right, left) distance: {middle_distance} {right_distance} {left_distance}, (mid, right, left) angles: {max_middle_angle} {max_right_angle} {max_left_angle}")
+        elif((left_distance < 1) or (max_left_angle >= 130)):
             turn_right()
-        elif((middle_distance > 0.5 and right_distance > 0.5 and left_distance > 0.5) or (max_middle_angle < 100 and max_right_angle < 100 and max_left_angle < 100)):
+            move_4_wheels(1.0)
+            print(f"Right:: (mid, right, left) distance: {middle_distance} {right_distance} {left_distance}, (mid, right, left) angles: {max_middle_angle} {max_right_angle} {max_left_angle}")
+        elif((middle_distance > 1 and right_distance > 1 and left_distance > 1) and (max_middle_angle < 130 and max_right_angle < 130 and max_left_angle < 130)):
             turn_straight()
+            move_6_wheels(1.0)
+            print(f"Straight:: (mid, right, left) distance: {middle_distance} {right_distance} {left_distance}, (mid, right, left) angles: {max_middle_angle} {max_right_angle} {max_left_angle}")
     
         # Capture image if there is any meaningful object.
         if(CAMERA.hasRecognition()):
