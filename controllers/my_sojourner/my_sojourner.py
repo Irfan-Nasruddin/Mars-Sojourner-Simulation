@@ -201,19 +201,15 @@ if __name__ == "__main__":
         # Decide movement based on distance of objects and elevation (angle).
         if((middle_distance <= 1 and right_distance <= 1 and left_distance < 1) or (max_middle_angle >= 130 and max_right_angle >= 130 and max_left_angle >= 130)):
             turn_around(1.0)
-            print(f"Around:: (mid, right, left) distance: {middle_distance} {right_distance} {left_distance}, (mid, right, left) angles: {max_middle_angle} {max_right_angle} {max_left_angle}")
         elif((right_distance < 1) or (max_right_angle >= 130)):
             turn_left()
             move_4_wheels(1.0)
-            print(f"Left:: (mid, right, left) distance: {middle_distance} {right_distance} {left_distance}, (mid, right, left) angles: {max_middle_angle} {max_right_angle} {max_left_angle}")
         elif((left_distance < 1) or (max_left_angle >= 130)):
             turn_right()
             move_4_wheels(1.0)
-            print(f"Right:: (mid, right, left) distance: {middle_distance} {right_distance} {left_distance}, (mid, right, left) angles: {max_middle_angle} {max_right_angle} {max_left_angle}")
         elif((middle_distance > 1 and right_distance > 1 and left_distance > 1) and (max_middle_angle < 130 and max_right_angle < 130 and max_left_angle < 130)):
             turn_straight()
             move_6_wheels(1.0)
-            print(f"Straight:: (mid, right, left) distance: {middle_distance} {right_distance} {left_distance}, (mid, right, left) angles: {max_middle_angle} {max_right_angle} {max_left_angle}")
     
         # Capture image if there is any meaningful object.
         if(CAMERA.hasRecognition()):
