@@ -147,6 +147,11 @@ if __name__ == "__main__":
     # Start moving the robot.
     move_6_wheels(1.0)
 
+    # Values to ensure the smoothness of decisions.
+    MAX_DECISION_SKIP_COUNT = 15
+    has_decided = False
+    decision_skip_count = 0
+
     # Define working loop of the robot.
     while ROBOT.step(TIME_STEP) != -1:
         # Get the range image
@@ -198,18 +203,34 @@ if __name__ == "__main__":
                 if(angle > max_middle_angle):
                     max_middle_angle = angle
 
-        # Decide movement based on distance of objects and elevation (angle).
-        if((middle_distance <= 1 and right_distance <= 1 and left_distance < 1) or (max_middle_angle >= 130 and max_right_angle >= 130 and max_left_angle >= 130)):
-            turn_around(1.0)
-        elif((right_distance < 1) or (max_right_angle >= 130)):
-            turn_left()
-            move_4_wheels(1.0)
-        elif((left_distance < 1) or (max_left_angle >= 130)):
-            turn_right()
-            move_4_wheels(1.0)
-        elif((middle_distance > 1 and right_distance > 1 and left_distance > 1) and (max_middle_angle < 130 and max_right_angle < 130 and max_left_angle < 130)):
-            turn_straight()
-            move_6_wheels(1.0)
+        # If the robot has made a decision allow the robot to partially fulfill that decision
+        if(not has_decided):
+            # Decide movement based on distance of objects and elevation (angle).
+            if((middle_distance <= 1 and right_distance <= 1 and left_distance < 1) or (max_middle_angle >= 125 and max_right_angle >= 125 and max_left_angle >= 125)):
+                turn_around(1.0)
+            elif((right_distance < 1) or (max_right_angle >= 125)):
+                turn_left()
+                move_4_wheels(1.0)
+            elif((left_distance < 1) or (max_left_angle >= 125)):
+                turn_right()
+                move_4_wheels(1.0)
+            elif((middle_distance > 1 and right_distance > 1 and left_distance > 1) and (max_middle_angle < 125 and max_right_angle < 125 and max_left_angle < 125)):
+                turn_straight()
+                move_6_wheels(1.0)
+            
+            # Indicate the robot has made a decision.
+            has_decided = True
+        else:
+            # After a certain amount of decision points.
+            if(decision_skip_count == MAX_DECISION_SKIP_COUNT):
+                # Indicate the decision can be renewed.
+                has_decided = False
+
+                # Reset the decision count.
+                decision_skip_count = 0
+            else:
+                # Increment the decision count.
+                decision_skip_count += 1
     
         # Capture image if there is any meaningful object.
         if(CAMERA.hasRecognition()):
