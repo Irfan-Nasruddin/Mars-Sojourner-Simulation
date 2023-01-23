@@ -163,6 +163,7 @@ if __name__ == "__main__":
         # Initialize angle values of different areas within the range image.
         max_left_angle = max_middle_angle = max_right_angle = 90
         
+        # For each pixel in a row of a range image:
         for pixel_column_index in range(RANGE_IMAGE_WIDTH):
             # Get distance to the object in front.
             distance = RANGE_FINDER.rangeImageGetDepth(range_image, RANGE_IMAGE_WIDTH, pixel_column_index, RANGE_IMAGE_HEIGHT//2)
